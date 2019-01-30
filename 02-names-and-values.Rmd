@@ -1,0 +1,124 @@
+---
+title: "Names and Values"
+output: html_document
+---
+
+## 2.2 Binding Basics 
+
+### Exercise 2.2.1
+
+Explain the relationship between a, b, c and d in the following code:
+
+```{r, eval = FALSE}
+a <- 1:10
+b <- a
+c <- b
+d <- 1:10
+```
+
+The first line `r a <- 1:10` creates the vector 
+`c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)` and assigns the name `a` to it.
+
+The same vector is the assigned to name `b` and name `c`. Note that `a`, `b`, 
+and `c` have the same memory location.
+
+The last line creates a second vector `c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)` 
+and assigns the name `d` to it. In this case `d` has a different address than 
+`a`, `b`, and `c`.
+
+```{r}
+a <- 1:10
+b <- a
+c <- b
+d <- 1:10
+
+lobstr::obj_addr(a) == lobstr::obj_addr(b)
+lobstr::obj_addr(a) == lobstr::obj_addr(c)
+lobstr::obj_addr(a) == lobstr::obj_addr(d)
+```
+
+### Exercise 2.2.2
+
+The following code accesses the `mean` function in multiple ways. Do they all 
+point to the same underlying function object? Verify this with 
+`lobstr::obj_addr()`.
+
+```{r, eval=FALSE}
+mean
+base::mean
+get("mean")
+evalq(mean)
+match.fun("mean")
+```
+
+All methods of accessing a function point to the same object:
+
+```{r}
+#https://stackoverflow.com/questions/30850400/using-identical-in-r-with-multiple-vectors
+a <- lobstr::obj_addr(mean)
+b <- lobstr::obj_addr(base::mean)
+c <- lobstr::obj_addr(get("mean"))
+d <- lobstr::obj_addr(evalq(mean))
+e <- lobstr::obj_addr(match.fun("mean"))
+
+all(sapply(list(b, c, d, e), FUN = identical, a))
+```
+
+### Exercise 2.2.3
+
+By default, base R data import functions, like `read.csv()`, will automatically 
+convert non-syntactic names to syntactic ones. Why might this be problematic? 
+What option allows you to suppress this behaviour?
+
+By default, `read.csv()` will use the `make.names()` function to create 
+syntactic column names.
+
+```{r}
+testfile <- tempfile(fileext = ".csv")
+cat("_abc", "1", "2", "3", file = testfile, sep = "\n")
+
+read.csv(testfile)
+```
+
+You can suppress this behaviour by setting the `check.names` argument to 
+`FALSE`.
+
+```{r}
+read.csv(testfile, check.names = FALSE)
+```
+
+### Exericse 2.2.4
+
+What rules does `make.names()` use to convert non-syntactic names into 
+syntactic ones?
+
+From the function documentation, in the `make.names()` function:
+
+* The character "X" is prepended if necessary. 
+* All invalid characters are translated to ".". 
+* A missing value is translated to "NA". 
+* Names which match R keywords have a dot appended to them. 
+* Duplicated values are altered by make.unique.
+
+For example: 
+
+```{r}
+nonsyntactic <- c("_abc", "with space", "if", "with-space")
+make.names(nonsyntactic, unique = TRUE)
+```
+
+### Exercise 2.2.5
+
+I slightly simplified the rules that govern syntactic names. Why is `.123e1` not 
+a syntactic name? Read `?make.names` for the full details.
+
+From the documentation:
+
+"A syntactically valid name consists of letters, numbers and the dot or 
+underline characters and starts with a letter or the **dot not followed by a 
+number**."
+
+```{r}
+make.names(".123e1")
+```
+
