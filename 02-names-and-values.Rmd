@@ -1,5 +1,5 @@
 ---
-title: "Names and Values"
+title: "Chapter 2: Names and Values"
 output: html_document
 ---
 
@@ -121,4 +121,80 @@ number**."
 ```{r}
 make.names(".123e1")
 ```
+
+## 2.3 Copy-on-modify
+
+### Exericse 2.3.1
+
+Why is `tracemem(1:10)` not useful?
+
+Just calling `1:10` doesn't create a binding to the vector object, so R doesn't 
+have anything to trace after `tracemem(1:10)` is called.
+
+### Exercise 2.3.2
+
+Explain why tracemem() shows two copies when you run this code. Hint: carefully 
+look at the difference between this code and the code shown earlier in the 
+section.
+
+```{r, eval = FALSE}
+x <- c(1L, 2L, 3L)
+tracemem(x)
+
+x[[3]] <- 4
+```
+
+```{r}
+x <- c(1, 2, 3)
+tracemem(x)
+
+x[[3]] <- 4L
+```
+
+### Exercise 2.3.3
+
+Sketch out the relationship between the following objects:
+
+```{r}
+a <- 1:10
+b <- list(a, a)
+c <- list(b, a, 1:10)
+```
+
+The first line creates the vector object `1:10` and binds name `a` to it.
+
+The second line creates the list object with items `(a, a)` and binds name `b` 
+to it. The address of the items in `b` is the same as the address of `a`.
+
+The third line creates the list object with items `(b, a, 1:10)` and binds 
+name `c` to it.
+
+```{r}
+lobstr::obj_addr(a)
+
+lobstr::obj_addr(b)
+lobstr::obj_addrs(b)
+
+lobstr::obj_addr(c)
+lobstr::obj_addrs(c)
+lobstr::obj_addrs(c[[1]])
+```
+
+### Exercise 2.3.4
+
+What happens when you run this code?
+
+```{r}
+x <- list(1:10)
+lobstr::obj_addr(x)
+
+
+x[[2]] <- x
+```
+
+```{r}
+lobstr::obj_addr(x)
+lobstr::obj_addrs(x)
+```
+
 

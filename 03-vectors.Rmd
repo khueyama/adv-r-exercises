@@ -1,0 +1,124 @@
+---
+title: "Chapter 3: Vectors"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 3.2 Atomic Vectors
+
+### Exercise 3.2.1 
+
+How do you create raw and complex scalars? (See `?raw` and `?complex`)
+
+Scalars in R are really just vectors of length 1. For `raw()` we specify 
+this using the `length` argument, and for `complex()` we use the `length.out` 
+argument.
+
+```{r}
+raw(length = 1)
+complex(length.out = 1)
+```
+
+### Exercise 3.2.2
+
+Test your knowledge of the vector coercion rules by predicting the output of 
+the following uses of `c()`:
+
+```{r, eval = FALSE}
+c(1, FALSE)
+c("a", 1)
+c(TRUE, 1L)
+```
+
+Remember the order of flexibility: logical --> integer --> double --> character.
+
+* `c(1, FALSE)` will be of type double --> `c(1, 0)`
+* `c("a", 1)` will be of type character --> `c("a", "1")`
+* `c(TRUE, 1L)` will be of type integer --> `c(1, 1)`
+
+```{r}
+c(1, FALSE)
+c("a", 1)
+c(TRUE, 1L)
+```
+
+### Exercise 3.2.3
+
+Why is `1 == "1"` true? Why is `-1 < FALSE` true? Why is `"one" < 2` false?
+
+Again, remember the order of flexibility: logical --> integer --> double --> 
+character.
+
+* `1 == "1"` is actually testing `"1" == "1"`, which is `TRUE`
+* `-1 < FALSE` is coerced to `-1 < 0`, which is `TRUE`
+* `"one" < 2` is coerced to `"one" < "2"`, which is `FALSE`
+
+```{r}
+1 == "1"
+-1 < FALSE
+"one" < 2
+```
+
+### Exercise 3.2.4
+
+Why is the default missing value, `NA`, a logical vector? What’s special about 
+logical vectors? (Hint: think about `c(FALSE, NA_character_)`.)
+
+Think about `c(FALSE, NA_character_)`:
+
+```{r}
+typeof(c(FALSE, NA_character_))
+```
+
+Note the type coercion that takes place. Since `NA` is a logical vector, it has 
+the flexibility to be coereced up to different data types.
+
+```{r}
+typeof(c(TRUE, NA))
+typeof(c(1L, NA))
+typeof(c(1, NA))
+typeof(c('one', NA))
+```
+
+### Exercise 3.2.5
+
+Precisely what do `is.atomic()`, `is.numeric()`, and `is.vector()` test for?
+
+From the documentation,
+
+* `is.atomic` returns `TRUE` if `x` is of an atomic type (or `NULL`) and 
+`FALSE` otherwise.
+
+```{r}
+x <- c(1L, 2L, 3L)
+is.atomic(x)
+is.atomic(list(x))
+```
+
+* `is.numeric` is a more general test of an object being interpretable as 
+numbers.
+
+```{r}
+is.numeric(c("a", "b", "c"))
+is.numeric(c(1L, 2L, 3L))
+is.numeric(c("1", "2", "3"))
+is.numeric(factor(c(1L, 2L, 3L)))
+```
+
+* `is.vector` returns `TRUE` if `x` is a vector of the specified `mode` having 
+no attributes other than names. It returns `FALSE` otherwise.
+
+Note that if `mode = "any"`, `is.vector` may return `TRUE` for the atomic 
+modes, list and expression.
+
+```{r}
+x <- c(1L, 2L, 3L)
+
+is.vector(x)
+is.vector(x, mode = "character")
+is.vector(list(x))
+```
+
