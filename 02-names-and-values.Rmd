@@ -197,4 +197,120 @@ lobstr::obj_addr(x)
 lobstr::obj_addrs(x)
 ```
 
+## 2.4 Object Size
+
+### Exercise 2.4.1 
+
+In the following example, why are `object.size(y)` and `obj_size(y)` so 
+radically different? Consult the documentation of `object.size()`.
+
+```{r, eval = FALSE}
+y <- rep(list(runif(1e4)), 100)
+
+object.size(y)
+#> 8005648 bytes
+lobstr::obj_size(y)
+#> 80,896 B
+```
+
+According to the documentation, `object.size()` "...does not detect if elements 
+of a list are shared". In this case `object.size()` is duplicating the 
+reference to `y`, explaining why the results for `object.size()` is roughly 
+100 times larger than that of `lobstr::obj_size()`. Note the size of one 
+item from `y`:
+
+```{r}
+y <- rep(list(runif(1e4)), 100)
+
+lobstr::obj_size(y[[1]])
+```
+
+
+### Exercise 2.4.2
+
+Take the following list. Why is its size somewhat misleading?
+
+```{r}
+funs <- list(mean, sd, var)
+lobstr::obj_size(funs)
+```
+
+```{r}
+funs <- list(mean, sd, var)
+lobstr::obj_size(funs)
+```
+
+### Exercise 2.4.3
+
+Predict the output of the following code:
+
+```{r, eval = FALSE}
+a <- runif(1e6)
+obj_size(a)
+
+b <- list(a, a)
+obj_size(b)
+obj_size(a, b)
+
+b[[1]][[1]] <- 10
+obj_size(b)
+obj_size(a, b)
+
+b[[2]][[1]] <- 10
+obj_size(b)
+obj_size(a, b)
+```
+
+Double vectors occupy 8 bytes per element. The vector `a` should occupy 
+8 * 1,000,000 = 8,000,000 bytes. 
+
+```{r}
+a <- runif(1e6)
+lobstr::obj_size(a)
+```
+
+Where do the extra 48 bytes come from? Note that an empty vector in R will 
+occupy 48 bytes of memory:
+
+```{r}
+lobstr::obj_size(vector("numeric"))
+```
+
+Since `b` references `a` twice, we expect it to occupy 8,000,048 bytes, plus the 
+overhead for a empty `list` of length 2, which is 64 bytes.
+
+```{r}
+b <- list(a, a)
+
+lobstr::obj_size(b)
+lobstr::obj_size(b) - lobstr::obj_size(vector("list", 2))
+```
+
+Since `b` and `a` reference the same object, the amount of memory required 
+remains the same.
+
+```{r}
+lobstr::obj_size(a, b)
+```
+
+When the first item of `b` is modified a copy is created. We expect `b` to now 
+occupy 8,000,048 * 2 bytes, plus the 64 bytes of overhead for the list. Since 
+the second item of `b` still references `a`, the overall memory useage 
+remains the same.
+
+```{r}
+b[[1]][[1]] <- 10
+lobstr::obj_size(b)
+lobstr::obj_size(a, b)
+```
+
+When the second item of `b` is modified, another copy is created. We expect `b` 
+to still occupy 16,000,160 bytes. Since neither item of `b` references `a` 
+anymore, the overall memory usage will be 16,000,160 + 8,000,048 bytes.
+
+```{r}
+b[[2]][[1]] <- 10
+lobstr::obj_size(b)
+lobstr::obj_size(a, b)
+```
 
